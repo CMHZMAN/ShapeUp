@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace ShapeUp.Models
 {
-    internal class User
+    public class User
     {
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public string Contact { get; set; }
+        public string Pending2FACode { get; set; }
     }
 }

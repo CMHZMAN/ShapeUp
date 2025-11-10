@@ -1,10 +1,13 @@
-﻿namespace ShapeUp
+﻿using ShapeUp.Inlogg;
+
+namespace ShapeUp
 {
-    internal class Program
+    public class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            MainMenu menu = new MainMenu();
+            menu.Menu();
         }
     }
 }
