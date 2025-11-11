@@ -31,9 +31,13 @@ namespace ShapeUp.Inlogg
             Console.Write("Enter email or phone (for 2FA): ");
             string contact = Console.ReadLine();
 
+            // Get next available user ID
+            int newID = GetNextUserId();
+
             // Create user object
             var user = new User
             {
+                ID = newID,
                 Username = username,
                 Password = password,
                 Contact = contact
@@ -46,6 +50,17 @@ namespace ShapeUp.Inlogg
             return user;
         }
 
+        private const string FilePath = "user.json";
+
+        private int GetNextUserId()
+    {
+        if (!File.Exists(FilePath))
+            return 1;
+
+        string json = File.ReadAllText(FilePath);
+        var users = JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
+        return users.Count == 0 ? 1 : users.Max(u => u.ID) + 1;
+    }
         // Save user to JSON file
         private void SaveToJson(User user)
         {
