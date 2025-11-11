@@ -10,31 +10,32 @@ namespace ShapeUp.Inlogg
 {
     public class Register
     {
+        private const string FilePath = "user.json";
+
         public User CreateUser()
         {
-            // Ask user to enter a username
             Console.Write("Enter username: ");
             string username = Console.ReadLine();
 
-            // Ask user to enter a password
             Console.Write("Enter password: ");
             string password = Console.ReadLine();
 
-            // Check if password meets requirements
             if (!ValidatePassword(password, out string reason))
             {
                 Console.WriteLine($"Weak password: {reason}");
                 return null;
             }
 
-            // Ask user to enter email or phone number for 2FA
             Console.Write("Enter email or phone (for 2FA): ");
             string contact = Console.ReadLine();
 
-            // Get next available user ID
-            int newID = GetNextUserId();
+            // Load existing users
+            List<User> users = LoadUsers();
 
-            // Create user object
+            // Get next ID
+            int newID = users.Count == 0 ? 1 : users.Max(u => u.ID) + 1;
+
+            // Create new user
             var user = new User
             {
                 ID = newID,
@@ -43,34 +44,40 @@ namespace ShapeUp.Inlogg
                 Contact = contact
             };
 
-            // Save to JSON
-            SaveToJson(user);
+            // Add new user to list
+            users.Add(user);
+
+            // Save entire list back to JSON
+            SaveUsers(users);
 
             Console.WriteLine($"Welcome, {user.Username}! Registered successfully.");
             return user;
         }
 
-        private const string FilePath = "user.json";
-
-        private int GetNextUserId()
-    {
-        if (!File.Exists(FilePath))
-            return 1;
-
-        string json = File.ReadAllText(FilePath);
-        var users = JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
-        return users.Count == 0 ? 1 : users.Max(u => u.ID) + 1;
-    }
-        // Save user to JSON file
-        private void SaveToJson(User user)
+        private List<User> LoadUsers()
         {
-            string filePath = "user.json";
-            string json = JsonSerializer.Serialize(user, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(filePath, json);
+            if (!File.Exists(FilePath))
+                return new List<User>();
+
+            string json = File.ReadAllText(FilePath);
+            try
+            {
+                return JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
+            }
+            catch
+            {
+                // In case the JSON is empty or invalid
+                return new List<User>();
+            }
+        }
+
+        private void SaveUsers(List<User> users)
+        {
+            string json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(FilePath, json);
             Console.WriteLine("User saved to JSON file.");
         }
 
-        // Check password rules
         private bool ValidatePassword(string password, out string reason)
         {
             reason = "";

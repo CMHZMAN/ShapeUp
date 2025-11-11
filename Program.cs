@@ -6,11 +6,11 @@ namespace ShapeUp
     {
         static void Main(string[] args)
         {
-            //StartMenu menu = new StartMenu();
-            //menu.Menu();
+            StartMenu menu = new StartMenu();
+            menu.Menu();
 
-            UserMenu.UserMenu userMenu = new UserMenu.UserMenu();
-            userMenu.UserMe();
+            //UserMenu.UserMenu userMenu = new UserMenu.UserMenu();
+            //userMenu.UserMe();
         }
     }
 }
