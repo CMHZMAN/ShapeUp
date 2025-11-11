@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace ShapeUp.Inlogg
 {
-    public class MainMenu
+    public class StartMenu
     {
         private readonly Register register;
         private readonly Login login;
 
-        public MainMenu()
+        public StartMenu()
         {
             register = new Register();
             login = new Login();

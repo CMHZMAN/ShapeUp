@@ -6,7 +6,7 @@ namespace ShapeUp
     {
         static void Main(string[] args)
         {
-            MainMenu menu = new MainMenu();
+            StartMenu menu = new StartMenu();
             menu.Menu();
         }
     }
