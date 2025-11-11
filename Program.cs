@@ -1,11 +1,10 @@
-﻿using Test;
+﻿using ShapeUp.Inlogg;
 
 namespace ShapeUp
 {
-    internal class Program
+    public class Program
     {
         static void Main(string[] args)
-
         {
             StartMenu menu = new StartMenu();
             menu.Menu();
