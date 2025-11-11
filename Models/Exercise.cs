@@ -8,5 +8,15 @@ namespace ShapeUp.Models
 {
     internal class Exercise
     {
+        public string? Name { get; set; }
+
+        public string? Difficulty { get; set; }
+
+        public string? Musclegroup { get; set; }
+
+        
+
+         
+
     }
 }
