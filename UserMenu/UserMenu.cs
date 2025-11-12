@@ -42,6 +42,7 @@ namespace ShapeUp.UserMenu
                 Console.WriteLine("3. Nutrition Goals");
                 Console.WriteLine("4. Progress Report");
                 Console.WriteLine("5. Workout Sessions");
+                Console.WriteLien("6. Profile Settings");)
                 Console.WriteLine("0. Log Out");
                 Console.Write("Choose: ");
 
@@ -68,6 +69,10 @@ namespace ShapeUp.UserMenu
 
                     case "5":
                         // Behöver fyllas i med väg till nästa klass/Meny/ETC  // Call the Workout Sessions menu
+                        break;
+
+                    case "6":
+                       // Call the Profile Settings menu
                         break;
 
                     case "0":
