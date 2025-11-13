@@ -1,14 +1,16 @@
-﻿using Test;
+﻿using ShapeUp.Inlogg;
 
 namespace ShapeUp
 {
-    internal class Program
+    public class Program
     {
         static void Main(string[] args)
-
         {
-            ProgressDemo.Run();
-            Console.WriteLine("Hello,!");
+            StartMenu menu = new StartMenu();
+            menu.Menu();
+
+            //UserMenu.UserMenu userMenu = new UserMenu.UserMenu();
+            //userMenu.UserMe();
         }
     }
 }
