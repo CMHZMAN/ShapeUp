@@ -1,4 +1,5 @@
 ﻿using ShapeUp.Models;
+using ShapeUp.UserMenu;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,6 +51,9 @@ namespace ShapeUp.Inlogg
             {
                 Console.WriteLine($"Welcome, {user.Username}!");
                 user.Pending2FACode = "";
+
+                UserMenu.UserMenu userMenu = new UserMenu.UserMenu();
+                userMenu.UserMe(); ;
             }
             else
             {
