@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json;
 
-namespace ShapeUp.Inlogg
+namespace ShapeUp.Profille
 {
     public class ProfileManager
     {
@@ -29,6 +29,8 @@ namespace ShapeUp.Inlogg
 
 
             List<User> users = LoadUSers();
+
+            //Find the correct user id
 
             var userUpdate = users.FirstOrDefault(u => u.ID == LoggedInUser.ID);
             if (userUpdate != null)
@@ -64,7 +66,10 @@ namespace ShapeUp.Inlogg
             }
 
 
-        }
-            
+
+
+
+
+        }       
   }
 

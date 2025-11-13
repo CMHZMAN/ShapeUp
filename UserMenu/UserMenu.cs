@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ShapeUp.Profille;
 
 namespace ShapeUp.UserMenu
 {
@@ -15,6 +16,7 @@ namespace ShapeUp.UserMenu
         private NutritionGoal nutritionGoal;
         private ProgressReport progressReport;
         private WorkoutSession workoutSession;
+        private readonly ProfileManager profileManager;
 
         // Constructor: initializes all menu classes when MainMenu is created
         public UserMenu()
@@ -24,10 +26,11 @@ namespace ShapeUp.UserMenu
             nutritionGoal = new NutritionGoal();     // Initialize Nutrition Goals menu
             progressReport = new ProgressReport();   // Initialize Progress Report menu
             workoutSession = new WorkoutSession();   // Initialize Workout Sessions menu
+            profileManager = new ProfileManager();   // Initialize Profile Manager menu
         }
 
         // Main loop for the menu
-        public void UserMe()
+        public void UserMe(User LoggedInUser)
         {
             bool running = true; // Controls the menu loop
 
@@ -42,7 +45,7 @@ namespace ShapeUp.UserMenu
                 Console.WriteLine("3. Nutrition Goals");
                 Console.WriteLine("4. Progress Report");
                 Console.WriteLine("5. Workout Sessions");
-                Console.WriteLien("6. Profile Settings");)
+                Console.WriteLine("6. Profile");
                 Console.WriteLine("0. Log Out");
                 Console.Write("Choose: ");
 
@@ -72,7 +75,7 @@ namespace ShapeUp.UserMenu
                         break;
 
                     case "6":
-                       // Call the Profile Settings menu
+                       profileManager.UpdateProfile(LoggedInUser); // Call the Profile Manager to update profile
                         break;
 
                     case "0":
