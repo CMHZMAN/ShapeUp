@@ -1,12 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ShapeUp.Models
+﻿namespace ShapeUp.Models
 {
-    internal class Exercise
+    public class Exercise
     {
+        public string? Name { get; set; }
+        public string? Difficulty { get; set; }
+        public string? Musclegroup { get; set; }
+
+        public Exercise(string name, string difficulty, string musclegroup)
+        {
+            Name = name;
+            Difficulty = difficulty;
+            Musclegroup = musclegroup;
+        }
+
+        public override string ToString()
+        {
+            return $"Exercise: {Name}, Difficulty: {Difficulty}, Muscle Group: {Musclegroup}";
+        }
     }
 }
+
