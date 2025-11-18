@@ -11,6 +11,7 @@ namespace ShapeUp.UserMenu
     public class UserMenu
     {
         // Declare fields for all the menu classes
+        private readonly User loggedInUser;
         private Exercise exercise;
         private MealAdviceAI mealAdviceAI;
         private NutritionGoal nutritionGoal;
@@ -18,8 +19,9 @@ namespace ShapeUp.UserMenu
         private WorkoutSession workoutSession;
 
         // Constructor: initializes all menu classes when MainMenu is created
-        public UserMenu()
+        public UserMenu(User user)
         {
+            loggedInUser = user;
             exercise = new Exercise();               // Initialize Exercise menu
             mealAdviceAI = new MealAdviceAI();       // Initialize Meal Advice AI menu
             nutritionGoal = new NutritionGoal();     // Initialize Nutrition Goals menu
@@ -52,8 +54,10 @@ namespace ShapeUp.UserMenu
                 switch (choice)
                 {
                     case "1":
-                        // Behöver fyllas i med väg till nästa klass/Meny/ETC // Call the Exercise menu
+                        var exerciseMenu = new ExerciseMenu(loggedInUser);
+                        exerciseMenu.ShowMenu();
                         break;
+
 
                     case "2":
                         // Behöver fyllas i med väg till nästa klass/Meny/ETC // Call the Meal Advice AI menu

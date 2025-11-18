@@ -29,8 +29,9 @@ namespace ShapeUp.Models.Exercises
                     Console.WriteLine("EXERCISE MENU");
                     Console.WriteLine("1. View Exercises");
                     Console.WriteLine("2. Add New Exercise");
-                    Console.WriteLine("3. Assign Exercise to Weekly Plan");
-                    Console.WriteLine("4. View Weekly Schedule");
+                    Console.WriteLine("2. Add New Exercise");
+                    Console.WriteLine("4. Assign Exercise to Weekly Plan");
+                    Console.WriteLine("5. View Weekly Schedule");
                     Console.WriteLine("0. Back to Main Menu");
                     Console.Write("Choose: ");
                     string choice = Console.ReadLine();
@@ -46,10 +47,14 @@ namespace ShapeUp.Models.Exercises
                             break;
 
                         case "3":
-                            scheduleService.AssignToSchedule();
+                            exerciseService.DeleteExercise();
                             break;
 
                         case "4":
+                            scheduleService.AssignToSchedule();
+                            break;
+
+                        case "5":
                             scheduleService.ViewSchedule();
                             break;
 

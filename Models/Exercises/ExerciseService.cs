@@ -6,59 +6,305 @@ using System.Threading.Tasks;
 
 namespace ShapeUp.Models.Exercises
 {
-    internal class ExerciseService
+    public class ExerciseService
     {
-            private readonly User loggedInUser;
-            private readonly UserDataService userDataService;
+        // Fields (data stored inside the service)
 
-            public ExerciseService(User user)
+        private User loggedInUser;
+        // The user who is currently logged in.
+        // All exercises created/edited belong to THIS user only.
+
+        private readonly UserDataService userDataService;
+        // This handles saving the updated user data back into user.json.
+
+
+        // Runs when ExerciseService is created from UserMenu
+        public ExerciseService(User user)
+        {
+            loggedInUser = user;                  // Store the logged-in user
+            userDataService = new UserDataService(); // Prepare JSON saving/loading helper
+        }
+
+
+        // Shows all exercises saved by this user
+        public void ViewExercises()
+        {
+            Console.Clear();
+
+            // Check if user has created any exercises yet
+            if (loggedInUser.Exercises.Count == 0)
             {
-                loggedInUser = user;
-                userDataService = new UserDataService();
+                Console.WriteLine("You have no exercises yet.");
+            }
+            else
+            {
+                Console.WriteLine("Your Exercises");
+
+                // Loop through each exercise
+                for (int i = 0; i < loggedInUser.Exercises.Count; i++)
+                {
+                    var ex = loggedInUser.Exercises[i];  // The current exercise
+
+                    // Display all exercise fields
+                    Console.WriteLine($"{i + 1}. {ex.Name}");
+                    Console.WriteLine($"   Duration: {ex.DurationMinutes} min");
+                    Console.WriteLine($"   Description: {ex.Description}");
+                    Console.WriteLine($"   Muscle Group: {ex.MuscleGroup}");
+                    Console.WriteLine($"   Difficulty: {ex.Difficulty}");
+                    Console.WriteLine();
+                }
             }
 
-            public void ViewExercises()
+            // Pause so user can see the list
+            Console.WriteLine("Press any key to return...");
+            Console.ReadKey();
+        }
+
+
+
+
+        // Creates a new exercise and saves it to the user's profile
+        public void AddExercise()
+        {
+            Console.Clear();
+            Console.WriteLine("Add New Exercise");
+
+            // Ask for basic exercise name
+            Console.Write("Enter exercise name: ");
+            string name = Console.ReadLine();
+
+            // Ask for duration (must be a number)
+            Console.Write("Enter duration in minutes: ");
+            if (!int.TryParse(Console.ReadLine(), out int duration))
             {
-                Console.Clear();
-
-                if (loggedInUser.Exercises.Count == 0)
-                {
-                    Console.WriteLine("No exercises yet.");
-                }
-                else
-                {
-                    Console.WriteLine("Your Exercises:");
-                    foreach (var ex in loggedInUser.Exercises)
-                    {
-                        Console.WriteLine($"- {ex.Name} ({ex.DurationMinutes} min)");
-                    }
-                }
-
-                Console.WriteLine("\nPress any key...");
+                Console.WriteLine("Invalid duration.");
                 Console.ReadKey();
+                return;  // Stop if duration is not a number
             }
 
-            public void AddExercise()
+            // Ask for description of the exercise
+            Console.Write("Enter description: ");
+            string description = Console.ReadLine();
+
+
+            // USER SELECTS MUSCLE GROUP
+            Console.WriteLine("Choose muscle group:");
+            Console.WriteLine("1. Legs");
+            Console.WriteLine("2. Chest");
+            Console.WriteLine("3. Back");
+            Console.WriteLine("4. Arms");
+            Console.WriteLine("5. Core");
+            Console.Write("Choose: ");
+            string mgChoice = Console.ReadLine();
+
+            // Convert number -> text
+            string muscleGroup = mgChoice switch
             {
-                Console.Clear();
-                Console.Write("Enter exercise name: ");
-                string name = Console.ReadLine();
+                "1" => "Legs",
+                "2" => "Chest",
+                "3" => "Back",
+                "4" => "Arms",
+                "5" => "Core",
+                _ => "General"    // If invalid choice, default to "General"
+            };
 
-                Console.Write("Enter duration in minutes: ");
-                if (!int.TryParse(Console.ReadLine(), out int duration))
-                {
-                    Console.WriteLine("Invalid input!");
-                    Console.ReadKey();
-                    return;
-                }
 
-                var newExercise = new Exercise { Name = name, DurationMinutes = duration };
-                loggedInUser.Exercises.Add(newExercise);
+            // USER SELECTS DIFFICULTY LEVEL
+            Console.WriteLine("Choose difficulty:");
+            Console.WriteLine("1. Easy");
+            Console.WriteLine("2. Medium");
+            Console.WriteLine("3. Hard");
+            Console.Write("Choose: ");
+            string diffChoice = Console.ReadLine();
 
-                userDataService.SaveUser(loggedInUser);
-                Console.WriteLine($"{name} added!");
+            // Convert number -> text
+            string difficulty = diffChoice switch
+            {
+                "1" => "Easy",
+                "2" => "Medium",
+                "3" => "Hard",
+                _ => "Medium"     // Default if invalid input
+            };
+
+
+            // CREATE THE EXERCISE OBJECT
+            var newExercise = new Exercise
+            {
+                Name = name,
+                DurationMinutes = duration,
+                Description = description,
+                MuscleGroup = muscleGroup,
+                Difficulty = difficulty
+            };
+
+            // Add new exercise to logged-in user's exercise list
+            loggedInUser.Exercises.Add(newExercise);
+
+            // Save updated user data back to JSON
+            userDataService.SaveUser(loggedInUser);
+
+            Console.WriteLine("Exercise added!");
+            Console.ReadKey();
+        }
+
+
+
+        // Allows editing name, duration, muscle, difficulty, description
+        public void EditExercise()
+        {
+            Console.Clear();
+
+            // Check if user has at least one exercise
+            if (loggedInUser.Exercises.Count == 0)
+            {
+                Console.WriteLine("No exercises to edit.");
                 Console.ReadKey();
+                return;
             }
+
+            // List exercises so user can choose which one to edit
+            Console.WriteLine("Which exercise do you want to edit?");
+            for (int i = 0; i < loggedInUser.Exercises.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {loggedInUser.Exercises[i].Name}");
+            }
+
+            // Validate numeric choice
+            if (!int.TryParse(Console.ReadLine(), out int choice) ||
+                choice < 1 || choice > loggedInUser.Exercises.Count)
+            {
+                Console.WriteLine("Invalid selection.");
+                Console.ReadKey();
+                return;
+            }
+
+            // Get the selected exercise
+            var ex = loggedInUser.Exercises[choice - 1];
+
+            Console.Clear();
+            Console.WriteLine($"Editing '{ex.Name}'\n");
+
+
+            // Ask for new values (optional)
+
+            Console.Write($"New name (leave blank to keep '{ex.Name}'): ");
+            string newName = Console.ReadLine();
+
+            Console.Write($"New duration (current {ex.DurationMinutes}): ");
+            string newDurationInput = Console.ReadLine();
+
+            Console.Write($"New description (leave empty to keep current): ");
+            string newDescription = Console.ReadLine();
+
+
+            // MUSCLE GROUP
+            Console.WriteLine("New muscle group (leave blank to keep current)");
+            Console.WriteLine("1. Legs2. Chest3. Back4. Arms5. Core");
+            string newMG = Console.ReadLine();
+
+            // DIFFICULTY LEVEL
+            Console.WriteLine("\nNew difficulty (leave blank to keep current)");
+            Console.WriteLine("1. Easy2. Medium3. Hard");
+            string newDiff = Console.ReadLine();
+
+
+            // APPLY CHANGES IF USER ENTERED NEW VALUES
+
+            if (!string.IsNullOrWhiteSpace(newName))
+                ex.Name = newName;
+
+            if (int.TryParse(newDurationInput, out int newDuration))
+                ex.DurationMinutes = newDuration;
+
+            if (!string.IsNullOrWhiteSpace(newDescription))
+                ex.Description = newDescription;
+
+            if (!string.IsNullOrWhiteSpace(newMG))
+            {
+                ex.MuscleGroup = newMG switch
+                {
+                    "1" => "Legs",
+                    "2" => "Chest",
+                    "3" => "Back",
+                    "4" => "Arms",
+                    "5" => "Core",
+                    _ => ex.MuscleGroup // Keep original if invalid
+                };
+            }
+
+            if (!string.IsNullOrWhiteSpace(newDiff))
+            {
+                ex.Difficulty = newDiff switch
+                {
+                    "1" => "Easy",
+                    "2" => "Medium",
+                    "3" => "Hard",
+                    _ => ex.Difficulty // Keep original if invalid
+                };
+            }
+
+
+            // Save updated data
+            userDataService.SaveUser(loggedInUser);
+
+            Console.WriteLine("Exercise updated!");
+            Console.ReadKey();
+        }
+
+        public void DeleteExercise()
+        {
+            Console.Clear();
+
+            // Check if the user has ANY exercises
+            if (loggedInUser.Exercises.Count == 0)
+            {
+                Console.WriteLine("You have no exercises to delete.");
+                Console.ReadKey();
+                return;
+            }
+
+            // Show exercises so user can choose what to delete
+            Console.WriteLine("Select an exercise to delete:\n");
+
+            for (int i = 0; i < loggedInUser.Exercises.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {loggedInUser.Exercises[i].Name}");
+            }
+
+            Console.Write("\nChoose number: ");
+
+            // Validate that the user enters a number
+            if (!int.TryParse(Console.ReadLine(), out int choice) ||
+                choice < 1 || choice > loggedInUser.Exercises.Count)
+            {
+                Console.WriteLine("Invalid selection.");
+                Console.ReadKey();
+                return;
+            }
+
+            // Store the exercise the user wants to delete
+            var selectedExercise = loggedInUser.Exercises[choice - 1];
+
+            // Confirm deletion
+            Console.Write($"\nAre you sure you want to delete '{selectedExercise.Name}'? (y/n): ");
+            string confirm = Console.ReadLine().ToLower();
+
+            if (confirm != "y")
+            {
+                Console.WriteLine("Deletion canceled.");
+                Console.ReadKey();
+                return;
+            }
+
+            // Remove the exercise from the list
+            loggedInUser.Exercises.RemoveAt(choice - 1);
+
+            // Save changes to JSON
+            userDataService.SaveUser(loggedInUser);
+
+            Console.WriteLine("Exercise deleted successfully!");
+            Console.ReadKey();
         }
     }
+}
 
