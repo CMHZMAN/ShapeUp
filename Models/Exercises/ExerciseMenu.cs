@@ -6,69 +6,50 @@ using System.Threading.Tasks;
 
 namespace ShapeUp.Models.Exercises
 {
-    internal class ExerciseMenu
+    public class ExerciseMenu
     {
-            private readonly User loggedInUser;
-            private readonly ExerciseService exerciseService;
-            private readonly ScheduleService scheduleService;
+        private readonly User loggedInUser;
+        private readonly ExerciseService exerciseService;
 
-            public ExerciseMenu(User user)
+        public ExerciseMenu(User user)
+        {
+            loggedInUser = user;
+            exerciseService = new ExerciseService(loggedInUser);
+        }
+
+        public void ShowMenu()
+        {
+            bool running = true;
+
+            while (running)
             {
-                loggedInUser = user;
-                exerciseService = new ExerciseService(user);
-                scheduleService = new ScheduleService(user);
-            }
+                Console.Clear();
+                Console.WriteLine("Exercise Menu");
+                Console.WriteLine("1. View Exercises");
+                Console.WriteLine("2. Add Exercise");
+                Console.WriteLine("0. Back to User Menu");
+                Console.Write("Choose: ");
 
-            public void ShowMenu()
-            {
-                bool running = true;
+                string choice = Console.ReadLine();
 
-                while (running)
+                switch (choice)
                 {
-                    Console.Clear();
-                    Console.WriteLine("EXERCISE MENU");
-                    Console.WriteLine("1. View Exercises");
-                    Console.WriteLine("2. Add New Exercise");
-                    Console.WriteLine("2. Add New Exercise");
-                    Console.WriteLine("4. Assign Exercise to Weekly Plan");
-                    Console.WriteLine("5. View Weekly Schedule");
-                    Console.WriteLine("0. Back to Main Menu");
-                    Console.Write("Choose: ");
-                    string choice = Console.ReadLine();
-
-                    switch (choice)
-                    {
-                        case "1":
-                            exerciseService.ViewExercises();
-                            break;
-
-                        case "2":
-                            exerciseService.AddExercise();
-                            break;
-
-                        case "3":
-                            exerciseService.DeleteExercise();
-                            break;
-
-                        case "4":
-                            scheduleService.AssignToSchedule();
-                            break;
-
-                        case "5":
-                            scheduleService.ViewSchedule();
-                            break;
-
-                        case "0":
-                            running = false;
-                            break;
-
-                        default:
-                            Console.WriteLine("Invalid choice.");
-                            Console.ReadKey();
-                            break;
-                    }
+                    case "1":
+                        exerciseService.ViewExercises();
+                        break;
+                    case "2":
+                        exerciseService.AddExercise();
+                        break;
+                    case "0":
+                        running = false;
+                        break;
+                    default:
+                        Console.WriteLine("Invalid choice.");
+                        Console.ReadKey();
+                        break;
                 }
             }
         }
     }
+}
 

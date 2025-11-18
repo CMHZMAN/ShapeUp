@@ -23,8 +23,5 @@ namespace ShapeUp.Models
         // Store all exercises created by this USER in a list
         public List<Exercise> Exercises { get; set; } = new List<Exercise>();
 
-
-        //
-        public Dictionary<string, string> WeeklySchedule { get; set; } = new Dictionary<string, string>();
     }
 }
