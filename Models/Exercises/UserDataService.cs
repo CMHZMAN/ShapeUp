@@ -7,44 +7,63 @@ using System.Threading.Tasks;
 
 namespace ShapeUp.Models.Exercises
 {
-    internal class UserDataService
+    public class UserDataService
     {
-            private const string FilePath = "user.json";
+        // Path to the JSON file that stores all users
+        private const string FilePath = "user.json";
 
-            public List<User> LoadUsers()
+        // LOAD USERS
+        public List<User> LoadUsers()
+        {
+            // If the file does not exist, return an empty list of users
+            if (!File.Exists(FilePath))
+                return new List<User>();
+
+            try
             {
-                if (!File.Exists(FilePath))
-                    return new List<User>();
+                // Read all content from the JSON file
+                string json = File.ReadAllText(FilePath);
 
-                try
-                {
-                    string json = File.ReadAllText(FilePath);
-                    return JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
-                }
-                catch
-                {
-                    return new List<User>();
-                }
+                // Deserialize JSON into a list of User objects
+                // If deserialization fails or returns null, return an empty list
+                return JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
             }
-
-            public void SaveUser(User updatedUser)
+            catch
             {
-                List<User> allUsers = LoadUsers();
-
-                var existing = allUsers.FirstOrDefault(u => u.ID == updatedUser.ID);
-                if (existing != null)
-                {
-                    int index = allUsers.IndexOf(existing);
-                    allUsers[index] = updatedUser;
-                }
-                else
-                {
-                    allUsers.Add(updatedUser);
-                }
-
-                string json = JsonSerializer.Serialize(allUsers, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(FilePath, json);
+                // If reading or deserialization fails for any reason, return empty list
+                return new List<User>();
             }
         }
+
+        // SAVE A SINGLE USER
+        public void SaveUser(User updatedUser)
+        {
+            // Load all users from JSON
+            List<User> allUsers = LoadUsers();
+
+            // Check if the user already exists in the list (matching by ID)
+            var existing = allUsers.FirstOrDefault(u => u.ID == updatedUser.ID);
+
+            if (existing != null)
+            {
+                // If the user exists, replace the old version with the updated one
+                int index = allUsers.IndexOf(existing);
+                allUsers[index] = updatedUser;
+            }
+            else
+            {
+                // If the user is new, add them to the list
+                allUsers.Add(updatedUser);
+            }
+
+            // Serialize the updated list of users back to JSON, with indented formatting
+            string json = JsonSerializer.Serialize(allUsers, new JsonSerializerOptions { WriteIndented = true });
+
+            // Write the JSON back to the file
+            File.WriteAllText(FilePath, json);
+        }
     }
+
+
+}
 

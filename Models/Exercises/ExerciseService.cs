@@ -9,7 +9,6 @@ namespace ShapeUp.Models.Exercises
     public class ExerciseService
     {
         // Fields (data stored inside the service)
-
         private User loggedInUser;
         // The user who is currently logged in.
         // All exercises created/edited belong to THIS user only.
@@ -39,10 +38,8 @@ namespace ShapeUp.Models.Exercises
                 Console.WriteLine("Your Exercises");
 
                 // Loop through each exercise
-                for (int i = 0; i < loggedInUser.Exercises.Count; i++)
+                foreach (var ex in loggedInUser.Exercises)
                 {
-                    var ex = loggedInUser.Exercises[i];  // The current exercise
-
                     // Display all exercise fields, including the ID
                     Console.WriteLine($"ID: {ex.ID} | {ex.Name}");
                     Console.WriteLine($"   Duration: {ex.DurationMinutes} min");
@@ -119,17 +116,15 @@ namespace ShapeUp.Models.Exercises
                 _ => "Medium"     // Default if invalid input
             };
 
-            // ============================
-            // Generate unique ID for the new exercise
-            // ============================
-            int newID = loggedInUser.Exercises.Count == 0
-                ? 1 // If no exercises yet, start with ID 1
-                : loggedInUser.Exercises.Max(e => e.ID) + 1; // Otherwise, increment max ID
+            // Generate a new unique ID for this exercise
+            int newId = loggedInUser.Exercises.Any()
+                ? loggedInUser.Exercises.Max(e => e.ID) + 1
+                : 1;
 
             // CREATE THE EXERCISE OBJECT
             var newExercise = new Exercise
             {
-                ID = newID,                         // Assign the unique ID
+                ID = newId,                        // Assign the generated ID
                 Name = name,
                 DurationMinutes = duration,
                 Description = description,
@@ -143,7 +138,7 @@ namespace ShapeUp.Models.Exercises
             // Save updated user data back to JSON
             userDataService.SaveUser(loggedInUser);
 
-            Console.WriteLine($"Exercise added with ID {newID}!");
+            Console.WriteLine("Exercise added!");
             Console.ReadKey();
         }
 
@@ -167,32 +162,27 @@ namespace ShapeUp.Models.Exercises
                 Console.WriteLine($"ID: {ex.ID} | {ex.Name}");
             }
 
-            // Validate numeric choice
-            Console.Write("Enter exercise ID: ");
-            if (!int.TryParse(Console.ReadLine(), out int choice))
+            // Validate numeric choice by ID
+            Console.Write("\nEnter Exercise ID: ");
+            if (!int.TryParse(Console.ReadLine(), out int id) ||
+                !loggedInUser.Exercises.Any(e => e.ID == id))
             {
-                Console.WriteLine("Invalid selection.");
+                Console.WriteLine("Invalid ID.");
                 Console.ReadKey();
                 return;
             }
 
             // Get the selected exercise by ID
-            var selectedEx = loggedInUser.Exercises.FirstOrDefault(e => e.ID == choice);
-            if (selectedEx == null)
-            {
-                Console.WriteLine("Exercise not found!");
-                Console.ReadKey();
-                return;
-            }
+            var exToEdit = loggedInUser.Exercises.First(e => e.ID == id);
 
             Console.Clear();
-            Console.WriteLine($"Editing '{selectedEx.Name}'\n");
+            Console.WriteLine($"Editing '{exToEdit.Name}'\n");
 
             // Ask for new values (optional)
-            Console.Write($"New name (leave blank to keep '{selectedEx.Name}'): ");
+            Console.Write($"New name (leave blank to keep '{exToEdit.Name}'): ");
             string newName = Console.ReadLine();
 
-            Console.Write($"New duration (current {selectedEx.DurationMinutes}): ");
+            Console.Write($"New duration (current {exToEdit.DurationMinutes}): ");
             string newDurationInput = Console.ReadLine();
 
             Console.Write($"New description (leave empty to keep current): ");
@@ -200,45 +190,45 @@ namespace ShapeUp.Models.Exercises
 
             // MUSCLE GROUP
             Console.WriteLine("New muscle group (leave blank to keep current)");
-            Console.WriteLine("1. Legs2. Chest3. Back4. Arms5. Core");
+            Console.WriteLine("1. Legs 2. Chest 3. Back 4. Arms 5. Core");
             string newMG = Console.ReadLine();
 
             // DIFFICULTY LEVEL
             Console.WriteLine("\nNew difficulty (leave blank to keep current)");
-            Console.WriteLine("1. Easy2. Medium3. Hard");
+            Console.WriteLine("1. Easy 2. Medium 3. Hard");
             string newDiff = Console.ReadLine();
 
             // APPLY CHANGES IF USER ENTERED NEW VALUES
             if (!string.IsNullOrWhiteSpace(newName))
-                selectedEx.Name = newName;
+                exToEdit.Name = newName;
 
             if (int.TryParse(newDurationInput, out int newDuration))
-                selectedEx.DurationMinutes = newDuration;
+                exToEdit.DurationMinutes = newDuration;
 
             if (!string.IsNullOrWhiteSpace(newDescription))
-                selectedEx.Description = newDescription;
+                exToEdit.Description = newDescription;
 
             if (!string.IsNullOrWhiteSpace(newMG))
             {
-                selectedEx.MuscleGroup = newMG switch
+                exToEdit.MuscleGroup = newMG switch
                 {
                     "1" => "Legs",
                     "2" => "Chest",
                     "3" => "Back",
                     "4" => "Arms",
                     "5" => "Core",
-                    _ => selectedEx.MuscleGroup // Keep original if invalid
+                    _ => exToEdit.MuscleGroup
                 };
             }
 
             if (!string.IsNullOrWhiteSpace(newDiff))
             {
-                selectedEx.Difficulty = newDiff switch
+                exToEdit.Difficulty = newDiff switch
                 {
                     "1" => "Easy",
                     "2" => "Medium",
                     "3" => "Hard",
-                    _ => selectedEx.Difficulty // Keep original if invalid
+                    _ => exToEdit.Difficulty
                 };
             }
 
@@ -249,6 +239,7 @@ namespace ShapeUp.Models.Exercises
             Console.ReadKey();
         }
 
+        // Delete an exercise
         public void DeleteExercise()
         {
             Console.Clear();
@@ -268,25 +259,22 @@ namespace ShapeUp.Models.Exercises
                 Console.WriteLine($"ID: {ex.ID} | {ex.Name}");
             }
 
-            Console.Write("\nEnter exercise ID: ");
+            Console.Write("\nEnter Exercise ID to delete: ");
 
-            if (!int.TryParse(Console.ReadLine(), out int choice))
+            // Validate ID input
+            if (!int.TryParse(Console.ReadLine(), out int id) ||
+                !loggedInUser.Exercises.Any(e => e.ID == id))
             {
-                Console.WriteLine("Invalid selection.");
+                Console.WriteLine("Invalid ID.");
                 Console.ReadKey();
                 return;
             }
 
-            var selectedExercise = loggedInUser.Exercises.FirstOrDefault(e => e.ID == choice);
-            if (selectedExercise == null)
-            {
-                Console.WriteLine("Exercise ID not found!");
-                Console.ReadKey();
-                return;
-            }
+            // Get the selected exercise by ID
+            var exToDelete = loggedInUser.Exercises.First(e => e.ID == id);
 
             // Confirm deletion
-            Console.Write($"\nAre you sure you want to delete '{selectedExercise.Name}'? (y/n): ");
+            Console.Write($"\nAre you sure you want to delete '{exToDelete.Name}'? (y/n): ");
             string confirm = Console.ReadLine().ToLower();
 
             if (confirm != "y")
@@ -297,7 +285,7 @@ namespace ShapeUp.Models.Exercises
             }
 
             // Remove the exercise from the list
-            loggedInUser.Exercises.Remove(selectedExercise);
+            loggedInUser.Exercises.Remove(exToDelete);
 
             // Save changes to JSON
             userDataService.SaveUser(loggedInUser);
