@@ -48,7 +48,8 @@ namespace ShapeUp.Profille
             { 
                 Console.WriteLine("User not found.");
             }
-        }   
+        }
+
         private List<User> LoadUSers()
             {
                 if (!File.Exists(FilePath))
