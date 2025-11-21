@@ -23,7 +23,7 @@ namespace ShapeUp.ScheduleMap
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("=== WEEK SCHEDULE MENU ===");
+                Console.WriteLine("WEEK SCHEDULE MENU");
                 Console.WriteLine("1. Create Week");
                 Console.WriteLine("2. Add Exercise to Week");
                 Console.WriteLine("3. Remove Exercise from Week");
