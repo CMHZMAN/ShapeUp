@@ -29,6 +29,20 @@ namespace ShapeUp.Inlogg
             Console.Write("Enter email or phone (for 2FA): ");
             string contact = Console.ReadLine();
 
+            Console.Write("Gender ! M/F");
+            string gender = Console.ReadLine();
+
+            Console.Write("Enter Weight ! (kg): ");
+            double weight = double.Parse(Console.ReadLine());
+
+            Console.Write("Enter Height ! (cm): ");
+            double height = double.Parse(Console.ReadLine());
+
+            Console.Write("Enter Age ! : ");
+            double age = double.Parse(Console.ReadLine());
+
+
+
             // Load existing users
             List<User> users = LoadUsers();
 
@@ -41,7 +55,12 @@ namespace ShapeUp.Inlogg
                 ID = newID,
                 Username = username,
                 Password = password,
-                Contact = contact
+                Contact = contact,
+                Gender = gender,
+                Weight = weight,
+                Height = height,
+                Age = age
+
             };
 
             // Add new user to list
@@ -107,6 +126,8 @@ namespace ShapeUp.Inlogg
             }
 
             return true;
+
+
         }
     }
 }
