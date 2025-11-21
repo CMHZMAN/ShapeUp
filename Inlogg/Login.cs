@@ -14,42 +14,43 @@ namespace ShapeUp.Inlogg
 
         public void SignIn()
         {
-            // Load all users from JSON
             List<User> users = LoadUsers();
+
             if (users.Count == 0)
             {
                 Console.WriteLine("No saved users found. Please register first.");
                 return;
             }
 
-            Console.Write("Enter username: ");
+            Console.Write("Username: ");
             string name = Console.ReadLine();
 
-            Console.Write("Enter password: ");
+            Console.Write("Password: ");
             string password = Console.ReadLine();
 
-            // Find user matching username and password
-            User user = users.FirstOrDefault(u => u.Username == name && u.Password == password);
+            // Check for matching user
+            User loggedInUser = users.FirstOrDefault(u => u.Username == name && u.Password == password);
 
-            if (user == null)
+            if (loggedInUser == null)
             {
                 Console.WriteLine("Incorrect username or password!");
                 return;
             }
 
-            // Generate 2FA code
-            user.Pending2FACode = Generate2FACode();
-            Console.WriteLine($"(2FA code sent to {user.Contact})");
+            // 2FA code
+            loggedInUser.Pending2FACode = Generate2FACode();
+            Console.WriteLine($"(2FA code sent to {loggedInUser.Contact})");
 
-            // For testing, we show the code directly
-            Console.WriteLine($"Enter 2FA code: {user.Pending2FACode}");
             Console.Write("Enter 2FA code: ");
             string entered = Console.ReadLine();
 
-            if (entered == user.Pending2FACode)
+            if (entered == loggedInUser.Pending2FACode)
             {
-                Console.WriteLine($"Welcome, {user.Username}!");
-                user.Pending2FACode = "";
+                Console.WriteLine($"Welcome, {loggedInUser.Username}!");
+                loggedInUser.Pending2FACode = "";
+
+                UserMenu userMenu = new UserMenu(loggedInUser);
+                userMenu.UserMe(); // Start the user menu
             }
             else
             {
@@ -59,25 +60,15 @@ namespace ShapeUp.Inlogg
 
         private List<User> LoadUsers()
         {
-            if (!File.Exists(FilePath))
-                return new List<User>();
+            if (!File.Exists(FilePath)) return new List<User>();
 
             string json = File.ReadAllText(FilePath);
-            try
-            {
-                return JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
-            }
-            catch
-            {
-                // If JSON is invalid or empty
-                return new List<User>();
-            }
+            return JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
         }
 
         private string Generate2FACode()
         {
-            var rnd = new Random();
-            return rnd.Next(100000, 999999).ToString();
+            return new Random().Next(100000, 999999).ToString();
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ShapeUp.Models.Exercises;
+using ShapeUp.ScheduleMap;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,5 +19,14 @@ namespace ShapeUp.Models
         public double Weight { get; set; }
         public double Age { get; set; }
         public string Gender { get; set; }
+
+
+        // Store all exercises created by this USER in a list
+        // Exercises created by the user
+        public List<Exercise> Exercises { get; set; } = new List<Exercise>();
+
+        // Weeks (Schedules) created by the user
+        public List<Schedule> WeeklyPlans { get; set; } = new List<Schedule>();
+
     }
 }
