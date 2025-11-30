@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Spectre.Console;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,13 +9,13 @@ namespace ShapeUp.Models.Exercises
 {
     public class ExerciseMenu
     {
-        private readonly User loggedInUser;
-        private readonly ExerciseService exerciseService;
+        private readonly User loggedInUser;  // The logged-in user
+        private readonly ExerciseService exerciseService; // Handles exercise CRUD
 
         public ExerciseMenu(User user)
         {
             loggedInUser = user;
-            exerciseService = new ExerciseService(loggedInUser);
+            exerciseService = new ExerciseService(loggedInUser); // Initialize service with current user
         }
 
         public void ShowMenu()
@@ -24,32 +25,47 @@ namespace ShapeUp.Models.Exercises
             while (running)
             {
                 Console.Clear();
-                Console.WriteLine("Exercise Menu");
-                Console.WriteLine("1. View Exercises");
-                Console.WriteLine("2. Add Exercise");
-                Console.WriteLine("0. Back to User Menu");
-                Console.Write("Choose: ");
 
-                string choice = Console.ReadLine();
+                // Fancy Spectre.Console title
+                AnsiConsole.MarkupLine("[bold yellow]Exercise Menu[/]"); // Menu title
 
+                // Create arrow-key menu using Spectre.Console
+                var choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("[green]Choose an option:[/]")
+                        .HighlightStyle(new Style(foreground: Color.Gold1, decoration: Decoration.Bold)) // Highlight style
+                        .AddChoices(new[]
+                        {
+                        "View Exercises", // Option 1
+                        "Add Exercise",   // Option 2
+                        "Edit Exercise",  // Option 3
+                        "Delete Exercise",// Option 4
+                        "Back to User Menu" // Option 5
+                        })
+                );
+
+                // Menu actions based on selection
                 switch (choice)
                 {
-                    case "1":
-                        exerciseService.ViewExercises();
+                    case "View Exercises":
+                        exerciseService.ViewExercises(); // Show all exercises
                         break;
-                    case "2":
-                        exerciseService.AddExercise();
+                    case "Add Exercise":
+                        exerciseService.AddExercise(); // Add new exercise
                         break;
-                    case "0":
-                        running = false;
+                    case "Edit Exercise":
+                        exerciseService.EditExercise(); // Edit selected exercise
                         break;
-                    default:
-                        Console.WriteLine("Invalid choice.");
-                        Console.ReadKey();
+                    case "Delete Exercise":
+                        exerciseService.DeleteExercise(); // Delete selected exercise
+                        break;
+                    case "Back to User Menu":
+                        running = false; // Exit menu
                         break;
                 }
             }
         }
     }
+
 }
 

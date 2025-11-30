@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Spectre.Console;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -31,27 +32,27 @@ namespace ShapeUp.Models.Exercises
             // Check if user has created any exercises yet
             if (loggedInUser.Exercises.Count == 0)
             {
-                Console.WriteLine("You have no exercises yet.");
+                AnsiConsole.MarkupLine("[red]You have no exercises yet.[/]");
             }
             else
             {
-                Console.WriteLine("Your Exercises");
+                AnsiConsole.MarkupLine("[bold green]Your Exercises[/]\n");
 
                 // Loop through each exercise
                 foreach (var ex in loggedInUser.Exercises)
                 {
                     // Display all exercise fields, including the ID
-                    Console.WriteLine($"ID: {ex.ID} | {ex.Name}");
-                    Console.WriteLine($"   Duration: {ex.DurationMinutes} min");
-                    Console.WriteLine($"   Description: {ex.Description}");
-                    Console.WriteLine($"   Muscle Group: {ex.MuscleGroup}");
-                    Console.WriteLine($"   Difficulty: {ex.Difficulty}");
+                    AnsiConsole.MarkupLine($"[yellow]ID:[/] {ex.ID} | [cyan]{ex.Name}[/]");
+                    AnsiConsole.MarkupLine($"   Duration: [green]{ex.DurationMinutes}[/] min");
+                    AnsiConsole.MarkupLine($"   Description: [green]{ex.Description}[/]");
+                    AnsiConsole.MarkupLine($"   Muscle Group: [green]{ex.MuscleGroup}[/]");
+                    AnsiConsole.MarkupLine($"   Difficulty: [green]{ex.Difficulty}[/]");
                     Console.WriteLine();
                 }
             }
 
             // Pause so user can see the list
-            Console.WriteLine("Press any key to return...");
+            AnsiConsole.MarkupLine("\n[grey]Press any key to return...[/]");
             Console.ReadKey();
         }
 
@@ -59,62 +60,30 @@ namespace ShapeUp.Models.Exercises
         public void AddExercise()
         {
             Console.Clear();
-            Console.WriteLine("Add New Exercise");
+            AnsiConsole.MarkupLine("[bold green]Add New Exercise[/]");
 
             // Ask for basic exercise name
-            Console.Write("Enter exercise name: ");
-            string name = Console.ReadLine();
+            string name = AnsiConsole.Ask<string>("[yellow]Enter exercise name:[/]");
 
             // Ask for duration (must be a number)
-            Console.Write("Enter duration in minutes: ");
-            if (!int.TryParse(Console.ReadLine(), out int duration))
-            {
-                Console.WriteLine("Invalid duration.");
-                Console.ReadKey();
-                return;  // Stop if duration is not a number
-            }
+            int duration = AnsiConsole.Ask<int>("[yellow]Enter duration in minutes:[/]");
 
             // Ask for description of the exercise
-            Console.Write("Enter description: ");
-            string description = Console.ReadLine();
+            string description = AnsiConsole.Ask<string>("[yellow]Enter description:[/]");
 
             // USER SELECTS MUSCLE GROUP
-            Console.WriteLine("Choose muscle group:");
-            Console.WriteLine("1. Legs");
-            Console.WriteLine("2. Chest");
-            Console.WriteLine("3. Back");
-            Console.WriteLine("4. Arms");
-            Console.WriteLine("5. Core");
-            Console.Write("Choose: ");
-            string mgChoice = Console.ReadLine();
-
-            // Convert number -> text
-            string muscleGroup = mgChoice switch
-            {
-                "1" => "Legs",
-                "2" => "Chest",
-                "3" => "Back",
-                "4" => "Arms",
-                "5" => "Core",
-                _ => "General"    // If invalid choice, default to "General"
-            };
+            string muscleGroup = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[yellow]Choose muscle group:[/]")
+                    .AddChoices(new[] { "Legs", "Chest", "Back", "Arms", "Core" })
+            );
 
             // USER SELECTS DIFFICULTY LEVEL
-            Console.WriteLine("Choose difficulty:");
-            Console.WriteLine("1. Easy");
-            Console.WriteLine("2. Medium");
-            Console.WriteLine("3. Hard");
-            Console.Write("Choose: ");
-            string diffChoice = Console.ReadLine();
-
-            // Convert number -> text
-            string difficulty = diffChoice switch
-            {
-                "1" => "Easy",
-                "2" => "Medium",
-                "3" => "Hard",
-                _ => "Medium"     // Default if invalid input
-            };
+            string difficulty = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[yellow]Choose difficulty:[/]")
+                    .AddChoices(new[] { "Easy", "Medium", "Hard" })
+            );
 
             // Generate a new unique ID for this exercise
             int newId = loggedInUser.Exercises.Any()
@@ -138,7 +107,7 @@ namespace ShapeUp.Models.Exercises
             // Save updated user data back to JSON
             userDataService.SaveUser(loggedInUser);
 
-            Console.WriteLine("Exercise added!");
+            AnsiConsole.MarkupLine("[green]Exercise added![/]");
             Console.ReadKey();
         }
 
@@ -150,53 +119,48 @@ namespace ShapeUp.Models.Exercises
             // Check if user has at least one exercise
             if (loggedInUser.Exercises.Count == 0)
             {
-                Console.WriteLine("No exercises to edit.");
+                AnsiConsole.MarkupLine("[red]No exercises to edit.[/]");
                 Console.ReadKey();
                 return;
             }
 
             // List exercises so user can choose which one to edit
-            Console.WriteLine("Which exercise do you want to edit?");
-            foreach (var ex in loggedInUser.Exercises)
-            {
-                Console.WriteLine($"ID: {ex.ID} | {ex.Name}");
-            }
+            var choices = loggedInUser.Exercises
+                .Select(e => $"{e.ID} | {e.Name}")
+                .ToList();
 
-            // Validate numeric choice by ID
-            Console.Write("\nEnter Exercise ID: ");
-            if (!int.TryParse(Console.ReadLine(), out int id) ||
-                !loggedInUser.Exercises.Any(e => e.ID == id))
-            {
-                Console.WriteLine("Invalid ID.");
-                Console.ReadKey();
-                return;
-            }
+            string selected = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[yellow]Select an exercise to edit:[/]")
+                    .AddChoices(choices)
+            );
+
+            int id = int.Parse(selected.Split('|')[0].Trim());
 
             // Get the selected exercise by ID
             var exToEdit = loggedInUser.Exercises.First(e => e.ID == id);
 
             Console.Clear();
-            Console.WriteLine($"Editing '{exToEdit.Name}'\n");
+            AnsiConsole.MarkupLine($"[bold green]Editing '{exToEdit.Name}'[/]\n");
 
             // Ask for new values (optional)
-            Console.Write($"New name (leave blank to keep '{exToEdit.Name}'): ");
-            string newName = Console.ReadLine();
-
-            Console.Write($"New duration (current {exToEdit.DurationMinutes}): ");
-            string newDurationInput = Console.ReadLine();
-
-            Console.Write($"New description (leave empty to keep current): ");
-            string newDescription = Console.ReadLine();
+            string newName = AnsiConsole.Ask<string>($"New name (leave blank to keep '{exToEdit.Name}'):");
+            string newDurationInput = AnsiConsole.Ask<string>($"New duration (current {exToEdit.DurationMinutes}):");
+            string newDescription = AnsiConsole.Ask<string>("New description (leave empty to keep current):");
 
             // MUSCLE GROUP
-            Console.WriteLine("New muscle group (leave blank to keep current)");
-            Console.WriteLine("1. Legs 2. Chest 3. Back 4. Arms 5. Core");
-            string newMG = Console.ReadLine();
+            string newMG = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[yellow]New muscle group (leave blank to keep current):[/]")
+                    .AddChoices(new[] { "", "Legs", "Chest", "Back", "Arms", "Core" })
+            );
 
             // DIFFICULTY LEVEL
-            Console.WriteLine("\nNew difficulty (leave blank to keep current)");
-            Console.WriteLine("1. Easy 2. Medium 3. Hard");
-            string newDiff = Console.ReadLine();
+            string newDiff = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[yellow]New difficulty (leave blank to keep current):[/]")
+                    .AddChoices(new[] { "", "Easy", "Medium", "Hard" })
+            );
 
             // APPLY CHANGES IF USER ENTERED NEW VALUES
             if (!string.IsNullOrWhiteSpace(newName))
@@ -209,33 +173,15 @@ namespace ShapeUp.Models.Exercises
                 exToEdit.Description = newDescription;
 
             if (!string.IsNullOrWhiteSpace(newMG))
-            {
-                exToEdit.MuscleGroup = newMG switch
-                {
-                    "1" => "Legs",
-                    "2" => "Chest",
-                    "3" => "Back",
-                    "4" => "Arms",
-                    "5" => "Core",
-                    _ => exToEdit.MuscleGroup
-                };
-            }
+                exToEdit.MuscleGroup = newMG;
 
             if (!string.IsNullOrWhiteSpace(newDiff))
-            {
-                exToEdit.Difficulty = newDiff switch
-                {
-                    "1" => "Easy",
-                    "2" => "Medium",
-                    "3" => "Hard",
-                    _ => exToEdit.Difficulty
-                };
-            }
+                exToEdit.Difficulty = newDiff;
 
             // Save updated data
             userDataService.SaveUser(loggedInUser);
 
-            Console.WriteLine("Exercise updated!");
+            AnsiConsole.MarkupLine("[green]Exercise updated![/]");
             Console.ReadKey();
         }
 
@@ -247,39 +193,37 @@ namespace ShapeUp.Models.Exercises
             // Check if the user has ANY exercises
             if (loggedInUser.Exercises.Count == 0)
             {
-                Console.WriteLine("You have no exercises to delete.");
+                AnsiConsole.MarkupLine("[red]You have no exercises to delete.[/]");
                 Console.ReadKey();
                 return;
             }
 
             // Show exercises so user can choose what to delete
-            Console.WriteLine("Select an exercise to delete:\n");
-            foreach (var ex in loggedInUser.Exercises)
-            {
-                Console.WriteLine($"ID: {ex.ID} | {ex.Name}");
-            }
+            var choices = loggedInUser.Exercises
+                .Select(e => $"{e.ID} | {e.Name}")
+                .ToList();
 
-            Console.Write("\nEnter Exercise ID to delete: ");
+            string selected = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[yellow]Select an exercise to delete:[/]")
+                    .AddChoices(choices)
+            );
 
-            // Validate ID input
-            if (!int.TryParse(Console.ReadLine(), out int id) ||
-                !loggedInUser.Exercises.Any(e => e.ID == id))
-            {
-                Console.WriteLine("Invalid ID.");
-                Console.ReadKey();
-                return;
-            }
+            int id = int.Parse(selected.Split('|')[0].Trim());
 
             // Get the selected exercise by ID
             var exToDelete = loggedInUser.Exercises.First(e => e.ID == id);
 
             // Confirm deletion
-            Console.Write($"\nAre you sure you want to delete '{exToDelete.Name}'? (y/n): ");
-            string confirm = Console.ReadLine().ToLower();
+            string confirm = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title($"Are you sure you want to delete '{exToDelete.Name}'?[/]")
+                    .AddChoices(new[] { "y", "n" })
+            );
 
             if (confirm != "y")
             {
-                Console.WriteLine("Deletion canceled.");
+                AnsiConsole.MarkupLine("[yellow]Deletion canceled.[/]");
                 Console.ReadKey();
                 return;
             }
@@ -290,7 +234,7 @@ namespace ShapeUp.Models.Exercises
             // Save changes to JSON
             userDataService.SaveUser(loggedInUser);
 
-            Console.WriteLine("Exercise deleted successfully!");
+            AnsiConsole.MarkupLine("[green]Exercise deleted successfully![/]");
             Console.ReadKey();
         }
     }

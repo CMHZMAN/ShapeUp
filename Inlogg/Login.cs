@@ -1,4 +1,5 @@
 ﻿using ShapeUp.Models;
+using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,35 +19,34 @@ namespace ShapeUp.Inlogg
 
             if (users.Count == 0)
             {
-                Console.WriteLine("No saved users found. Please register first.");
+                AnsiConsole.MarkupLine("[red]No saved users found. Please register first.[/]");
                 return;
             }
 
-            Console.Write("Username: ");
-            string name = Console.ReadLine();
-
-            Console.Write("Password: ");
-            string password = Console.ReadLine();
+            string name = AnsiConsole.Ask<string>("[green]Username:[/]");
+            string password = AnsiConsole.Prompt(
+                new TextPrompt<string>("[green]Password:[/]")
+                    .PromptStyle("red")
+                    .Secret());
 
             // Check for matching user
             User loggedInUser = users.FirstOrDefault(u => u.Username == name && u.Password == password);
 
             if (loggedInUser == null)
             {
-                Console.WriteLine("Incorrect username or password!");
+                AnsiConsole.MarkupLine("[red]Incorrect username or password![/]");
                 return;
             }
 
             // 2FA code
             loggedInUser.Pending2FACode = Generate2FACode();
-            Console.WriteLine($"(2FA code sent to {loggedInUser.Contact})");
+            AnsiConsole.MarkupLine($"[yellow](2FA code sent to {loggedInUser.Contact})[/]");
 
-            Console.Write("Enter 2FA code: ");
-            string entered = Console.ReadLine();
+            string entered = AnsiConsole.Ask<string>("[green]Enter 2FA code:[/]");
 
             if (entered == loggedInUser.Pending2FACode)
             {
-                Console.WriteLine($"Welcome, {loggedInUser.Username}!");
+                AnsiConsole.MarkupLine($"[green]Welcome, {loggedInUser.Username}![/]");
                 loggedInUser.Pending2FACode = "";
 
                 UserMenu userMenu = new UserMenu(loggedInUser);
@@ -54,7 +54,7 @@ namespace ShapeUp.Inlogg
             }
             else
             {
-                Console.WriteLine("Wrong 2FA code!");
+                AnsiConsole.MarkupLine("[red]Wrong 2FA code![/]");
             }
         }
 

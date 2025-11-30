@@ -1,4 +1,5 @@
 ﻿using ShapeUp.Models;
+using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,34 +15,24 @@ namespace ShapeUp.Inlogg
 
         public User CreateUser()
         {
-            Console.Write("Enter username: ");
-            string username = Console.ReadLine();
-
-            Console.Write("Enter password: ");
-            string password = Console.ReadLine();
+            // Use Spectre.Console for colored prompts
+            string username = AnsiConsole.Ask<string>("[green]Enter username:[/]");
+            string password = AnsiConsole.Prompt(
+                new TextPrompt<string>("[green]Enter password:[/]")
+                    .PromptStyle("red")
+                    .Secret());
 
             if (!ValidatePassword(password, out string reason))
             {
-                Console.WriteLine($"Weak password: {reason}");
+                AnsiConsole.MarkupLine($"[red]Weak password: {reason}[/]");
                 return null;
             }
 
-            Console.Write("Enter email or phone (for 2FA): ");
-            string contact = Console.ReadLine();
-
-            Console.Write("Gender ! M/F");
-            string gender = Console.ReadLine();
-
-            Console.Write("Enter Weight ! (kg): ");
-            double weight = double.Parse(Console.ReadLine());
-
-            Console.Write("Enter Height ! (cm): ");
-            double height = double.Parse(Console.ReadLine());
-
-            Console.Write("Enter Age ! : ");
-            double age = double.Parse(Console.ReadLine());
-
-
+            string contact = AnsiConsole.Ask<string>("[green]Enter email or phone (for 2FA):[/]");
+            string gender = AnsiConsole.Ask<string>("[green]Gender ! M/F[/]");
+            double weight = AnsiConsole.Ask<double>("[green]Enter Weight ! (kg):[/]");
+            double height = AnsiConsole.Ask<double>("[green]Enter Height ! (cm):[/]");
+            double age = AnsiConsole.Ask<double>("[green]Enter Age ! :[/]");
 
             // Load existing users
             List<User> users = LoadUsers();
@@ -60,7 +51,6 @@ namespace ShapeUp.Inlogg
                 Weight = weight,
                 Height = height,
                 Age = age
-
             };
 
             // Add new user to list
@@ -69,7 +59,7 @@ namespace ShapeUp.Inlogg
             // Save entire list back to JSON
             SaveUsers(users);
 
-            Console.WriteLine($"Welcome, {user.Username}! Registered successfully.");
+            AnsiConsole.MarkupLine($"[green]Welcome, {user.Username}! Registered successfully.[/]");
             return user;
         }
 
@@ -94,7 +84,7 @@ namespace ShapeUp.Inlogg
         {
             string json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(FilePath, json);
-            Console.WriteLine("User saved to JSON file.");
+            AnsiConsole.MarkupLine("[yellow]User saved to JSON file.[/]");
         }
 
         private bool ValidatePassword(string password, out string reason)
@@ -126,8 +116,6 @@ namespace ShapeUp.Inlogg
             }
 
             return true;
-
-
         }
     }
 }

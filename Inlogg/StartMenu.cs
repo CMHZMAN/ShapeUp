@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Spectre.Console;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,33 +25,34 @@ namespace ShapeUp.Inlogg
             while (running)
             {
                 Console.Clear();
-                Console.WriteLine("MAIN MENU");
-                Console.WriteLine("1. Register new user");
-                Console.WriteLine("2. Login");
-                Console.WriteLine("3. Exit");
-                Console.Write("Choose: ");
-                string choice = Console.ReadLine();
+
+                var choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("[yellow]MAIN MENU[/]")
+                        .PageSize(10)
+                        .AddChoices(new[]
+                        {
+                        "Register new user",
+                        "Login",
+                        "Exit"
+                        })
+                        .HighlightStyle(new Style(Color.Green))
+                );
 
                 switch (choice)
                 {
-                    case "1":
+                    case "Register new user":
                         register.CreateUser();
                         Pause();
                         break;
 
-                    case "2":
+                    case "Login":
                         login.SignIn();
                         Pause();
                         break;
 
-                    case "3":
-                        Console.WriteLine("Exiting program...");
+                    case "Exit":
                         running = false;
-                        break;
-
-                    default:
-                        Console.WriteLine("Invalid choice. Try again.");
-                        Pause();
                         break;
                 }
             }
@@ -58,7 +60,7 @@ namespace ShapeUp.Inlogg
 
         private void Pause()
         {
-            Console.WriteLine("Press any key to return to the menu...");
+            AnsiConsole.MarkupLine("[grey]Press any key to return...[/]");
             Console.ReadKey();
         }
     }

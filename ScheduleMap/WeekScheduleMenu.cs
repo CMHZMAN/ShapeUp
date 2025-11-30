@@ -1,4 +1,5 @@
 ﻿using ShapeUp.Models;
+using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,53 +21,60 @@ namespace ShapeUp.ScheduleMap
         // Main menu loop
         public void Show()
         {
-            while (true)
+            bool running = true;
+
+            while (running)
             {
                 Console.Clear();
-                Console.WriteLine("WEEK SCHEDULE MENU");
-                Console.WriteLine("1. Create Week");
-                Console.WriteLine("2. Add Exercise to Week");
-                Console.WriteLine("3. Remove Exercise from Week");
-                Console.WriteLine("4. View Week");
-                Console.WriteLine("5. View All Weeks");
-                Console.WriteLine("6. Delete Week");
-                Console.WriteLine("0. Back");
-                Console.Write("Choose: ");
 
-                string input = Console.ReadLine();
+                // Fancy Spectre Console title
+                AnsiConsole.MarkupLine("[bold cyan]WEEK SCHEDULE MENU[/]");
 
-                switch (input)
+                // Menu options with arrow keys
+                string choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("[yellow]Choose an option:[/]")
+                        .AddChoices(new[]
+                        {
+                        "Create Week",            // 1
+                        "Add Exercise to Week",   // 2
+                        "Remove Exercise from Week", // 3
+                        "View Week",              // 4
+                        "View All Weeks",         // 5
+                        "Delete Week",            // 6
+                        "Back"                    // 0
+                        })
+                );
+
+                // Handle selection
+                switch (choice)
                 {
-                    case "1":
-                        scheduleService.AddWeek();
+                    case "Create Week":
+                        scheduleService.AddWeek(); // Call method to create a week
                         break;
 
-                    case "2":
-                        scheduleService.AddExerciseToWeek();
+                    case "Add Exercise to Week":
+                        scheduleService.AddExerciseToWeek(); // Call method to add exercise
                         break;
 
-                    case "3":
-                        scheduleService.RemoveExerciseFromWeek();
+                    case "Remove Exercise from Week":
+                        scheduleService.RemoveExerciseFromWeek(); // Call method to remove exercise
                         break;
 
-                    case "4":
-                        scheduleService.ViewWeek();
+                    case "View Week":
+                        scheduleService.ViewWeek(); // Call method to view a single week
                         break;
 
-                    case "5":
-                        scheduleService.ViewAllWeeks();
+                    case "View All Weeks":
+                        scheduleService.ViewAllWeeks(); // Call method to view all weeks
                         break;
 
-                    case "6":
-                        scheduleService.DeleteWeek();
+                    case "Delete Week":
+                        scheduleService.DeleteWeek(); // Call method to delete a week
                         break;
 
-                    case "0":
-                        return;
-
-                    default:
-                        Console.WriteLine("Invalid choice!");
-                        Console.ReadKey();
+                    case "Back":
+                        running = false; // Exit menu
                         break;
                 }
             }

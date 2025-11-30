@@ -1,5 +1,7 @@
 ﻿using ShapeUp.Models;
 using ShapeUp.Models.Exercises;
+using ShapeUp.Models.Meal;
+using ShapeUp.Profille;
 using ShapeUp.ScheduleMap;
 using System;
 using System.Collections.Generic;
@@ -12,6 +14,8 @@ namespace ShapeUp
         public class UserMenu
         {
             private readonly User loggedInUser;
+            private readonly ProfileManager profileManager;
+            private readonly MealMenu2 mealMenu;
             private readonly ExerciseService exerciseService;
             private readonly ScheduleService scheduleService;
 
@@ -28,8 +32,8 @@ namespace ShapeUp
                 {
                     Console.Clear();
                     Console.WriteLine("User Menu");
-                    Console.WriteLine("1. Exercises");
-                    Console.WriteLine("3. Exercises");
+                    Console.WriteLine("1. Profile");
+                    Console.WriteLine("3. Meals");
                     Console.WriteLine("4. Schedule");
                     Console.WriteLine("0. Log Out");
                     Console.Write("Choose: ");
@@ -39,6 +43,12 @@ namespace ShapeUp
                     switch (choice)
                 {
                     case "1":
+                        profileManager.UpdateProfile(loggedInUser);
+                        break;
+
+                        case "2":
+                        mealMenu.ShowMenu();
+                        break;
 
                     case "3":
                         scheduleService.ViewAllWeeks();
