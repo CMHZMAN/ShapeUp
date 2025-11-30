@@ -3,6 +3,8 @@ using ShapeUp.Models.Exercises;
 using ShapeUp.Models.Meal;
 using ShapeUp.Profille;
 using ShapeUp.ScheduleMap;
+using ShapeUp.Models.Meal;
+using ShapeUp.Profille;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +20,8 @@ namespace ShapeUp
             private readonly MealMenu2 mealMenu;
             private readonly ExerciseService exerciseService;
             private readonly ScheduleService scheduleService;
+            private readonly MealMenu2 mealMenu2;
+            private readonly ProfilleMenu profilleMenu;
 
         public UserMenu(User user)
             {
@@ -32,9 +36,10 @@ namespace ShapeUp
                 {
                     Console.Clear();
                     Console.WriteLine("User Menu");
-                    Console.WriteLine("1. Profile");
-                    Console.WriteLine("3. Meals");
+                    Console.WriteLine("1. Exercises");
+                    Console.WriteLine("3. Exercises");
                     Console.WriteLine("4. Schedule");
+                    Console.WriteLine("5. Profile");
                     Console.WriteLine("0. Log Out");
                     Console.Write("Choose: ");
 
@@ -50,12 +55,20 @@ namespace ShapeUp
                         mealMenu.ShowMenu();
                         break;
 
+                        break;
+                    case "2":
+                        mealMenu2.ShowMenu();
+                        break;
+
                     case "3":
                         scheduleService.ViewAllWeeks();
                         break;
 
                     case "4":
                         scheduleService.AddExerciseToWeek();
+                        break;
+                    case"5":
+                        profilleMenu.ShowMenu();
                         break;
 
                     case "0":
