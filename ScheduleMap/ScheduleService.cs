@@ -1,5 +1,6 @@
 ﻿using ShapeUp.Models;
 using ShapeUp.Models.Exercises;
+using ShapeUp.Models.Meal;
 using Spectre.Console;
 using System;
 using System.Collections.Generic;
@@ -12,13 +13,15 @@ namespace ShapeUp.ScheduleMap
     public class ScheduleService
     {
         private User loggedInUser;                  // The currently logged-in user
-        private readonly UserDataService userDataService; // Helper to save/load user JSON
+        private readonly UserDataService userDataService; // Helper class for loading/saving user JSON
+        private readonly MealManager mealManager;   // Manages meals for the user
 
-        // Constructor: store the logged-in user and prepare the JSON helper
+        // Constructor: store the logged-in user, prepare JSON helper, and initialize MealManager
         public ScheduleService(User user)
         {
-            loggedInUser = user;                    // Store logged-in user reference
-            userDataService = new UserDataService();// Prepare helper for saving/loading user data
+            loggedInUser = user;
+            userDataService = new UserDataService();
+            mealManager = new MealManager(user.ID); // Connect to user's meal JSON file
         }
 
         // ADD NEW WEEK
@@ -27,26 +30,26 @@ namespace ShapeUp.ScheduleMap
             Console.Clear();
             AnsiConsole.MarkupLine("[bold green]Add New Week Schedule[/]");
 
-            // Ask for week number (1–52)
+            // Ask user for the week number (1-52)
             int weekNumber = AnsiConsole.Ask<int>("[yellow]Enter week number (1–52):[/]");
 
-            // Generate unique ID for the new week
+            // Determine a new unique week ID
             int newWeekId = loggedInUser.WeeklyPlans.Any()
                 ? loggedInUser.WeeklyPlans.Max(w => w.Id) + 1
                 : 1;
 
-            // Create new week object
+            // Create a new Schedule object
             var newWeek = new Schedule
             {
-                Id = newWeekId,           // Unique week ID
-                WeekNumber = weekNumber,  // User-provided week number
-                Exercises = new List<ScheduledExercise>() // Initialize empty list of scheduled exercises
+                Id = newWeekId,
+                WeekNumber = weekNumber,
+                Items = new List<ScheduledItem>() // Empty list initially
             };
 
-            // Add the week to the user's schedule list
+            // Add the new week to the user's plans
             loggedInUser.WeeklyPlans.Add(newWeek);
 
-            // Save updated user data back to JSON
+            // Save changes to the user JSON
             userDataService.SaveUser(loggedInUser);
 
             AnsiConsole.MarkupLine($"[green]Week {weekNumber} added with ID {newWeekId}![/]");
@@ -54,11 +57,12 @@ namespace ShapeUp.ScheduleMap
         }
 
         // VIEW ALL WEEKS
+
         public void ViewAllWeeks()
         {
             Console.Clear();
 
-            // Check if there are any weeks
+            // Check if user has any scheduled weeks
             if (!loggedInUser.WeeklyPlans.Any())
             {
                 AnsiConsole.MarkupLine("[red]No weeks scheduled yet.[/]");
@@ -66,11 +70,11 @@ namespace ShapeUp.ScheduleMap
                 return;
             }
 
-            // List all weeks with ID, week number, and number of exercises
+            // Display all weeks with their ID, week number, and number of items
             AnsiConsole.MarkupLine("[bold green]All Scheduled Weeks:[/]");
             foreach (var week in loggedInUser.WeeklyPlans.OrderBy(w => w.WeekNumber))
             {
-                AnsiConsole.MarkupLine($"[yellow]ID:[/] {week.Id}, Week Number: [cyan]{week.WeekNumber}[/], Exercises: [green]{week.Exercises.Count}[/]");
+                AnsiConsole.MarkupLine($"[yellow]ID:[/] {week.Id}, Week Number: [cyan]{week.WeekNumber}[/], Items: [green]{week.Items.Count}[/]");
             }
 
             Console.ReadKey();
@@ -81,7 +85,7 @@ namespace ShapeUp.ScheduleMap
         {
             Console.Clear();
 
-            // Check if there are weeks to delete
+            // Check if user has any weeks
             if (!loggedInUser.WeeklyPlans.Any())
             {
                 AnsiConsole.MarkupLine("[red]No weeks to delete.[/]");
@@ -89,21 +93,26 @@ namespace ShapeUp.ScheduleMap
                 return;
             }
 
-            // Ask user to select a week to delete using arrow keys
+            // Add "Go Back" option at the bottom of the selection list
             var weekChoice = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("[yellow]Select a week to delete:[/]")
                     .AddChoices(loggedInUser.WeeklyPlans
                         .OrderBy(w => w.WeekNumber)
-                        .Select(w => $"ID {w.Id} | Week {w.WeekNumber}").ToList())
+                        .Select(w => $"ID {w.Id} | Week {w.WeekNumber}")
+                        .Concat(new[] { "0 | Go Back" }) // <-- Go Back option
+                        .ToList())
             );
 
-            int id = int.Parse(weekChoice.Split('|')[0].Replace("ID", "").Trim());
+            // If user chose Go Back, exit the method
+            if (weekChoice.StartsWith("0"))
+                return;
 
-            // Remove the week from the user's schedule
-            loggedInUser.WeeklyPlans.RemoveAll(w => w.Id == id);
+            // Parse the selected week ID and remove it from user's list
+            int weekId = int.Parse(weekChoice.Split('|')[0].Replace("ID", "").Trim());
+            loggedInUser.WeeklyPlans.RemoveAll(w => w.Id == weekId);
 
-            // Save updated user data
+            // Save changes to JSON
             userDataService.SaveUser(loggedInUser);
 
             AnsiConsole.MarkupLine("[green]Week deleted![/]");
@@ -115,7 +124,7 @@ namespace ShapeUp.ScheduleMap
         {
             Console.Clear();
 
-            // Check if any weeks exist
+            // Ensure there is at least one week
             if (!loggedInUser.WeeklyPlans.Any())
             {
                 AnsiConsole.MarkupLine("[red]No weeks available. Add a week first.[/]");
@@ -123,7 +132,7 @@ namespace ShapeUp.ScheduleMap
                 return;
             }
 
-            // Ask user to select a week using arrow keys
+            // Prompt user to select the week to add the exercise to
             var weekChoice = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("[yellow]Select week:[/]")
@@ -135,7 +144,7 @@ namespace ShapeUp.ScheduleMap
             int weekId = int.Parse(weekChoice.Split('|')[0].Replace("ID", "").Trim());
             var selectedWeek = loggedInUser.WeeklyPlans.First(w => w.Id == weekId);
 
-            // Check if user has exercises to add
+            // Ensure there is at least one exercise
             if (!loggedInUser.Exercises.Any())
             {
                 AnsiConsole.MarkupLine("[red]No exercises available. Add exercises first.[/]");
@@ -143,7 +152,7 @@ namespace ShapeUp.ScheduleMap
                 return;
             }
 
-            // Ask user to select an exercise using arrow keys
+            // Prompt user to select an exercise
             var exChoice = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("[yellow]Select an exercise:[/]")
@@ -153,29 +162,109 @@ namespace ShapeUp.ScheduleMap
 
             int exId = int.Parse(exChoice.Split('|')[0].Replace("ID", "").Trim());
 
-            // Ask for the start date and time
-            DateTime startTime = AnsiConsole.Ask<DateTime>("[yellow]Enter start date and time (yyyy-MM-dd HH:mm):[/]");
+            // Ask for day of week and time
+            var day = AnsiConsole.Prompt(
+                new SelectionPrompt<DayOfWeek>()
+                    .Title("[yellow]Select day of the week:[/]")
+                    .AddChoices(Enum.GetValues<DayOfWeek>())
+            );
 
-            // Generate unique ID for the scheduled exercise in this week
-            int newSchedId = selectedWeek.Exercises.Any() ? selectedWeek.Exercises.Max(e => e.Id) + 1 : 1;
+            var time = AnsiConsole.Ask<TimeSpan>("[yellow]Enter time of day (HH:mm):[/]");
 
-            // Add scheduled exercise to the week
-            selectedWeek.Exercises.Add(new ScheduledExercise
+            // Assign a new unique ID for the scheduled item
+            int newId = selectedWeek.Items.Any() ? selectedWeek.Items.Max(i => i.Id) + 1 : 1;
+
+            // Add the scheduled exercise to the week
+            selectedWeek.Items.Add(new ScheduledItem
             {
-                Id = newSchedId,       // Unique ID for this scheduled exercise
-                ExerciseId = exId,     // Reference to the Exercise
-                StartTime = startTime  // When the exercise is scheduled
+                Id = newId,
+                Day = day,
+                TimeOfDay = time,
+                ItemType = "Exercise",
+                ItemId = exId
             });
 
-            // Save updated user data
             userDataService.SaveUser(loggedInUser);
-
-            AnsiConsole.MarkupLine("[green]Exercise added to week![/]");
+            AnsiConsole.MarkupLine("[green]Exercise added to the week![/]");
             Console.ReadKey();
         }
 
-        // REMOVE EXERCISE FROM WEEK
-        public void RemoveExerciseFromWeek()
+        // ADD MEAL TO WEEK
+        public void AddMealToWeek()
+        {
+            Console.Clear();
+            AnsiConsole.MarkupLine("[bold green]ADD MEAL TO WEEK[/]");
+
+            // Ensure at least one week exists
+            if (!loggedInUser.WeeklyPlans.Any())
+            {
+                AnsiConsole.MarkupLine("[red]No weeks available. Add a week first.[/]");
+                Console.ReadKey();
+                return;
+            }
+
+            // Prompt user to select a week
+            var weekChoice = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[yellow]Select week:[/]")
+                    .AddChoices(loggedInUser.WeeklyPlans
+                        .OrderBy(w => w.WeekNumber)
+                        .Select(w => $"ID {w.Id} | Week {w.WeekNumber}").ToList())
+            );
+
+            int weekId = int.Parse(weekChoice.Split('|')[0].Replace("ID", "").Trim());
+            var selectedWeek = loggedInUser.WeeklyPlans.First(w => w.Id == weekId);
+
+            // Load all meals directly from the JSON file
+            var meals = mealManager.GetMealsFromFile();
+
+            if (!meals.Any())
+            {
+                AnsiConsole.MarkupLine("[red]No meals available. Add meals first.[/]");
+                Console.ReadKey();
+                return;
+            }
+
+            // Prompt user to select a meal to schedule
+            var mealChoice = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[yellow]Select a meal to schedule:[/]")
+                    .AddChoices(meals
+                        .Select(m => $"ID {m.Id} | {m.MealName}").ToList())
+            );
+
+            int mealId = int.Parse(mealChoice.Split('|')[0].Replace("ID", "").Trim());
+
+            // Ask for day and time
+            var day = AnsiConsole.Prompt(
+                new SelectionPrompt<DayOfWeek>()
+                    .Title("[yellow]Select day of the week:[/]")
+                    .AddChoices(Enum.GetValues<DayOfWeek>())
+            );
+
+            var time = AnsiConsole.Ask<TimeSpan>("[yellow]Enter time of day (HH:mm):[/]");
+
+            // Assign new ID for the scheduled item
+            int newId = selectedWeek.Items.Any() ? selectedWeek.Items.Max(i => i.Id) + 1 : 1;
+
+            // Add meal to schedule
+            selectedWeek.Items.Add(new ScheduledItem
+            {
+                Id = newId,
+                Day = day,
+                TimeOfDay = time,
+                ItemType = "Meal",
+                ItemId = mealId
+            });
+
+            // Save changes
+            userDataService.SaveUser(loggedInUser);
+            AnsiConsole.MarkupLine("[green]Meal added to the week successfully![/]");
+            Console.ReadKey();
+        }
+
+        // REMOVE EXERCISE OR MEAL FROM WEEK
+        public void RemoveItemFromWeek()
         {
             Console.Clear();
 
@@ -187,46 +276,69 @@ namespace ShapeUp.ScheduleMap
                 return;
             }
 
-            // Ask user to select a week using arrow keys
+            // Week selection with a "Go Back" option
+            var weekChoices = loggedInUser.WeeklyPlans
+                .OrderBy(w => w.WeekNumber)
+                .Select(w => $"ID {w.Id} | Week {w.WeekNumber}")
+                .ToList();
+            weekChoices.Add("Go Back"); // Add back option
+
             var weekChoice = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("[yellow]Select week to remove an exercise from:[/]")
-                    .AddChoices(loggedInUser.WeeklyPlans
-                        .OrderBy(w => w.WeekNumber)
-                        .Select(w => $"ID {w.Id} | Week {w.WeekNumber}").ToList())
+                    .Title("[yellow]Select week to remove an item from:[/]")
+                    .AddChoices(weekChoices)
             );
+
+            if (weekChoice == "Go Back")
+                return; // User canceled
 
             int weekId = int.Parse(weekChoice.Split('|')[0].Replace("ID", "").Trim());
             var selectedWeek = loggedInUser.WeeklyPlans.First(w => w.Id == weekId);
 
-            // Check if there are exercises scheduled in this week
-            if (!selectedWeek.Exercises.Any())
+            // Check if any items exist
+            if (!selectedWeek.Items.Any())
             {
-                AnsiConsole.MarkupLine("[red]No exercises scheduled in this week.[/]");
+                AnsiConsole.MarkupLine("[red]No items scheduled in this week.[/]");
                 Console.ReadKey();
                 return;
             }
 
-            // Ask user to select the scheduled exercise to remove
-            var schedChoice = AnsiConsole.Prompt(
+            // Item selection with "Go Back" option
+            var itemChoices = selectedWeek.Items.Select(i =>
+            {
+                string name;
+                if (i.ItemType == "Exercise")
+                {
+                    var ex = loggedInUser.Exercises.FirstOrDefault(e => e.ID == i.ItemId);
+                    name = ex != null ? ex.Name : "[Deleted Exercise]";
+                }
+                else
+                {
+                    var meal = mealManager.GetMealsFromFile().FirstOrDefault(m => m.Id == i.ItemId);
+                    name = meal != null ? meal.MealName : "[Deleted Meal]";
+                }
+
+                return $"ID {i.Id} | {name} ({i.ItemType}, {i.Day} {i.TimeOfDay:hh\\:mm})";
+            }).ToList();
+
+            itemChoices.Add("Go Back"); // Add back option
+
+            var itemChoice = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("[yellow]Select the scheduled exercise to remove:[/]")
-                    .AddChoices(selectedWeek.Exercises
-                        .Select(s => {
-                            var ex = loggedInUser.Exercises.First(e => e.ID == s.ExerciseId);
-                            return $"ID {s.Id} | {ex.Name} ({s.StartTime:yyyy-MM-dd HH:mm})";
-                        }).ToList())
+                    .Title("[yellow]Select item to remove:[/]")
+                    .AddChoices(itemChoices)
             );
 
-            int schedId = int.Parse(schedChoice.Split('|')[0].Replace("ID", "").Trim());
+            if (itemChoice == "Go Back")
+                return; // User canceled
 
-            // Remove the scheduled exercise
-            selectedWeek.Exercises.RemoveAll(e => e.Id == schedId);
+            // Parse and remove selected item
+            int itemId = int.Parse(itemChoice.Split('|')[0].Replace("ID", "").Trim());
+            selectedWeek.Items.RemoveAll(i => i.Id == itemId);
 
-            // Save updated user data
+            // Save changes
             userDataService.SaveUser(loggedInUser);
-
-            AnsiConsole.MarkupLine("[green]Scheduled exercise removed from the week![/]");
+            AnsiConsole.MarkupLine("[green]Item removed from the week![/]");
             Console.ReadKey();
         }
 
@@ -235,7 +347,6 @@ namespace ShapeUp.ScheduleMap
         {
             Console.Clear();
 
-            // Check if user has weeks scheduled
             if (!loggedInUser.WeeklyPlans.Any())
             {
                 AnsiConsole.MarkupLine("[red]No weeks scheduled.[/]");
@@ -243,7 +354,7 @@ namespace ShapeUp.ScheduleMap
                 return;
             }
 
-            // Ask user to select a week to view
+            // Select which week to view
             var weekChoice = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("[yellow]Select week to view:[/]")
@@ -255,12 +366,15 @@ namespace ShapeUp.ScheduleMap
             int weekId = int.Parse(weekChoice.Split('|')[0].Replace("ID", "").Trim());
             var selectedWeek = loggedInUser.WeeklyPlans.First(w => w.Id == weekId);
 
-            // Display all exercises in the week ordered by start time
+            // Display all scheduled items for this week
             AnsiConsole.MarkupLine($"[bold green]Week {selectedWeek.WeekNumber} Schedule:[/]");
-            foreach (var sched in selectedWeek.Exercises.OrderBy(e => e.StartTime))
+            foreach (var item in selectedWeek.Items.OrderBy(i => i.Day).ThenBy(i => i.TimeOfDay))
             {
-                var ex = loggedInUser.Exercises.First(e => e.ID == sched.ExerciseId);
-                AnsiConsole.MarkupLine($"{sched.StartTime:yyyy-MM-dd HH:mm} - {ex.Name} ({ex.DurationMinutes} min, {ex.MuscleGroup})");
+                string name = item.ItemType == "Exercise"
+                    ? loggedInUser.Exercises.First(e => e.ID == item.ItemId).Name
+                    : mealManager.GetMealsFromFile().FirstOrDefault(m => m.Id == item.ItemId)?.MealName ?? "[Deleted Meal]";
+
+                AnsiConsole.MarkupLine($"{item.Day}, {item.TimeOfDay:hh\\:mm} - {name} ({item.ItemType})");
             }
 
             Console.ReadKey();

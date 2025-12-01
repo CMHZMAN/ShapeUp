@@ -36,13 +36,14 @@ namespace ShapeUp.ScheduleMap
                         .Title("[yellow]Choose an option:[/]")
                         .AddChoices(new[]
                         {
-                        "Create Week",            // 1
-                        "Add Exercise to Week",   // 2
-                        "Remove Exercise from Week", // 3
-                        "View Week",              // 4
-                        "View All Weeks",         // 5
-                        "Delete Week",            // 6
-                        "Back"                    // 0
+                        "Create Week",             // 1
+                        "Add Exercise to Week",    // 2
+                        "Add Meal to Week",        // 3
+                        "Delete Exercise/Meal",    // 4
+                        "View Week",               // 5
+                        "View All Weeks",          // 6
+                        "Delete Week",             // 7
+                        "Back"                     // 0
                         })
                 );
 
@@ -50,31 +51,35 @@ namespace ShapeUp.ScheduleMap
                 switch (choice)
                 {
                     case "Create Week":
-                        scheduleService.AddWeek(); // Call method to create a week
+                        scheduleService.AddWeek();
                         break;
 
                     case "Add Exercise to Week":
-                        scheduleService.AddExerciseToWeek(); // Call method to add exercise
+                        scheduleService.AddExerciseToWeek();
                         break;
 
-                    case "Remove Exercise from Week":
-                        scheduleService.RemoveExerciseFromWeek(); // Call method to remove exercise
+                    case "Add Meal to Week":
+                        scheduleService.AddMealToWeek();
+                        break;
+
+                    case "Delete Exercise/Meal":
+                        scheduleService.RemoveItemFromWeek();
                         break;
 
                     case "View Week":
-                        scheduleService.ViewWeek(); // Call method to view a single week
+                        scheduleService.ViewWeek();
                         break;
 
                     case "View All Weeks":
-                        scheduleService.ViewAllWeeks(); // Call method to view all weeks
+                        scheduleService.ViewAllWeeks();
                         break;
 
                     case "Delete Week":
-                        scheduleService.DeleteWeek(); // Call method to delete a week
+                        scheduleService.DeleteWeek();
                         break;
 
                     case "Back":
-                        running = false; // Exit menu
+                        running = false;
                         break;
                 }
             }

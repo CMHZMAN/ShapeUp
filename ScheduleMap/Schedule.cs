@@ -9,8 +9,8 @@ namespace ShapeUp.ScheduleMap
     // Represents a scheduled exercise in a day
     public class Schedule
     {
-        public int Id { get; set; }                 // Unique ID for the week
-        public int WeekNumber { get; set; }         // Week number for ordering
-        public List<ScheduledExercise> Exercises { get; set; } = new List<ScheduledExercise>();
+        public int Id { get; set; }                      // Unique week ID
+        public int WeekNumber { get; set; }             // Week number 1–52
+        public List<ScheduledItem> Items { get; set; }  // Scheduled exercises or meals
     }
 }

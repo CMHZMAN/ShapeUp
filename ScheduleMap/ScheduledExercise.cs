@@ -10,6 +10,7 @@ namespace ShapeUp.ScheduleMap
     {
         public int Id { get; set; }           // Unique ID for this scheduled exercise
         public int ExerciseId { get; set; }   // Reference to the Exercise ID
-        public DateTime StartTime { get; set; } // When the exercise starts
+        public DayOfWeek Day { get; set; }          // Monday, Tuesday, etc.
+        public TimeSpan TimeOfDay { get; set; }     // HH:mm
     }
 }

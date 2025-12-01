@@ -141,25 +141,41 @@ namespace ShapeUp.Models.Exercises
             var exToEdit = loggedInUser.Exercises.First(e => e.ID == id);
 
             Console.Clear();
-            AnsiConsole.MarkupLine($"[bold green]Editing '{exToEdit.Name}'[/]\n");
+            AnsiConsole.MarkupLine($"[bold green]Editing '{exToEdit.Name}'[/]");
+
+
 
             // Ask for new values (optional)
-            string newName = AnsiConsole.Ask<string>($"New name (leave blank to keep '{exToEdit.Name}'):");
-            string newDurationInput = AnsiConsole.Ask<string>($"New duration (current {exToEdit.DurationMinutes}):");
-            string newDescription = AnsiConsole.Ask<string>("New description (leave empty to keep current):");
+            string newName = AnsiConsole.Prompt(
+            new TextPrompt<string>($"New name (leave blank to keep '{exToEdit.Name}'):")
+            .AllowEmpty()
+    );
 
-            // MUSCLE GROUP
+            string newDurationInput = AnsiConsole.Prompt(
+                new TextPrompt<string>($"New duration (current {exToEdit.DurationMinutes}):")
+                    .AllowEmpty()
+            );
+
+            string newDescription = AnsiConsole.Prompt(
+                new TextPrompt<string>("New description (leave blank to keep current):")
+                    .AllowEmpty()
+            );
+
+            var muscleChoices = new List<string> { "", "Legs", "Chest", "Back", "Arms", "Core" };
+
             string newMG = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("[yellow]New muscle group (leave blank to keep current):[/]")
-                    .AddChoices(new[] { "", "Legs", "Chest", "Back", "Arms", "Core" })
+                    .AddChoices(muscleChoices)
             );
 
-            // DIFFICULTY LEVEL
+            // DIFFICULTY — selection menu with an empty choice
+            var diffChoices = new List<string> { "", "Easy", "Medium", "Hard" };
+
             string newDiff = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("[yellow]New difficulty (leave blank to keep current):[/]")
-                    .AddChoices(new[] { "", "Easy", "Medium", "Hard" })
+                    .AddChoices(diffChoices)
             );
 
             // APPLY CHANGES IF USER ENTERED NEW VALUES
@@ -198,16 +214,21 @@ namespace ShapeUp.Models.Exercises
                 return;
             }
 
-            // Show exercises so user can choose what to delete
+            // Show exercises with a "Go Back" option at the bottom
             var choices = loggedInUser.Exercises
                 .Select(e => $"{e.ID} | {e.Name}")
                 .ToList();
+            choices.Add("0 | Go Back"); // Add "Go Back" at the bottom
 
             string selected = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("[yellow]Select an exercise to delete:[/]")
+                    .Title("[yellow]Select an exercise to delete (or 'Go Back'):[/]")
                     .AddChoices(choices)
             );
+
+            // Handle Go Back
+            if (selected.StartsWith("0"))
+                return; // Simply return to previous menu
 
             int id = int.Parse(selected.Split('|')[0].Trim());
 
@@ -215,9 +236,11 @@ namespace ShapeUp.Models.Exercises
             var exToDelete = loggedInUser.Exercises.First(e => e.ID == id);
 
             // Confirm deletion
+            string safeName = Markup.Escape(exToDelete.Name);
+
             string confirm = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title($"Are you sure you want to delete '{exToDelete.Name}'?[/]")
+                    .Title($"[yellow]Are you sure you want to delete '{safeName}'?[/]")
                     .AddChoices(new[] { "y", "n" })
             );
 

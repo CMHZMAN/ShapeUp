@@ -23,6 +23,8 @@ namespace ShapeUp
         private readonly ScheduleService scheduleService; // Handles schedules
         private readonly MealMenu2 mealMenu2;      // Alternate meal menu (if needed)
         private readonly ProfilleMenu profilleMenu; // Profile sub-menu
+        private readonly ExerciseMenu exerciseMenu;
+        private readonly WeekScheduleMenu weekScheduleMenu;
 
         // Constructor receives the logged-in user
         public UserMenu(User user)
@@ -34,6 +36,8 @@ namespace ShapeUp
             scheduleService = new ScheduleService(loggedInUser); // Initialize schedule service
             mealMenu2 = new MealMenu2(loggedInUser.ID); // Initialize second meal menu
             profilleMenu = new ProfilleMenu(loggedInUser); // Initialize profile menu
+            exerciseMenu = new ExerciseMenu(loggedInUser);
+            weekScheduleMenu = new WeekScheduleMenu(loggedInUser);
         }
 
         // Main user menu loop
@@ -56,10 +60,9 @@ namespace ShapeUp
                         {
                         "Exercises",       // 1
                         "Meal Plan",       // 2
-                        "View Schedule",   // 3
-                        "Add Exercise to Schedule", // 4
-                        "Profile",         // 5
-                        "Log Out"          // 0
+                        "View Schedule", // 3
+                        "Profile",         // 4
+                        "Log Out"          // 5
                         })
                 );
 
@@ -67,7 +70,7 @@ namespace ShapeUp
                 switch (choice)
                 {
                     case "Exercises":
-                        exerciseService.ViewExercises(); // View user exercises
+                        exerciseMenu.ShowMenu(); // View user exercises
                         break;
 
                     case "Meal Plan":
@@ -75,11 +78,7 @@ namespace ShapeUp
                         break;
 
                     case "View Schedule":
-                        scheduleService.ViewAllWeeks(); // View all scheduled weeks
-                        break;
-
-                    case "Add Exercise to Schedule":
-                        scheduleService.AddExerciseToWeek(); // Add exercise to week
+                        weekScheduleMenu.Show(); // View all scheduled weeks
                         break;
 
                     case "Profile":

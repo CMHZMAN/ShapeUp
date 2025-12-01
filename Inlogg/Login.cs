@@ -42,6 +42,8 @@ namespace ShapeUp.Inlogg
             loggedInUser.Pending2FACode = Generate2FACode();
             AnsiConsole.MarkupLine($"[yellow](2FA code sent to {loggedInUser.Contact})[/]");
 
+            AnsiConsole.MarkupLine($"[yellow]Your 2FA code is: [bold]{loggedInUser.Pending2FACode}[/][/]");
+
             string entered = AnsiConsole.Ask<string>("[green]Enter 2FA code:[/]");
 
             if (entered == loggedInUser.Pending2FACode)
